@@ -1,0 +1,14 @@
+ it is for temporory use 
+    
+left topic
+1. the os wala part
+2. memory wala part 
+
+
+
+
+1 virtual environment crate
+-- python3 -m venv venv 
+2 activate venv
+-- source venv/bin/activate
+3 python3 -m os_control.process_manager
