@@ -4,6 +4,10 @@ from ai_core.memory import ConversationMemory
 from ai_core.tool_registry import ToolRegistry
 from ai_core.tools import *
 
+import threading
+from voice.speech_to_text import SpeechToText
+from voice.text_to_speech import TextToSpeech
+
 from ui.overlay import AegisOverlay
 from ui.hotkey_listener import HotkeyListener
 
@@ -18,8 +22,12 @@ class AegisApp:
 
         self.register_tools()
 
+        self.stt = SpeechToText()
+        self.tts = TextToSpeech()
+
         self.overlay = AegisOverlay(
-            self.handle_command
+            self.handle_command,
+            self.start_voice_command_thread
         )
 
         self.overlay.hide()
@@ -84,7 +92,27 @@ class AegisApp:
             dangerous=True
         )
 
-    def handle_command(self, command):
+    def start_voice_command_thread(self):
+        threading.Thread(target=self.handle_voice_command, daemon=True).start()
+
+    def handle_voice_command(self):
+        self.overlay.set_status("🎤 Listening...")
+        
+        text = self.stt.record_and_transcribe(duration=5)
+        
+        if not text:
+            self.overlay.set_status("Could not understand.")
+            self.tts.speak("I couldn't understand that.")
+            self.overlay.root.after(3000, lambda: self.overlay.set_status(""))
+            return
+            
+        self.overlay.set_status("Processing...")
+        
+        self.handle_command(text, speak=True)
+        
+        self.overlay.set_status("")
+
+    def handle_command(self, command, speak=False):
 
         print("\nUser:", command)
 
@@ -103,8 +131,15 @@ class AegisApp:
         tool_plan = parse_tool_plan(response)
 
         if tool_plan is None:
+            if speak:
+                self.tts.speak("Sorry, I could not understand the AI response.")
             print("Aegis could not understand the AI response.")
             return
+
+        if speak and tool_plan.response:
+            self.overlay.set_status("🔊 Speaking...")
+            self.tts.speak(tool_plan.response)
+            self.overlay.root.after(2000, lambda: self.overlay.set_status(""))
 
         for tool_call in tool_plan.tool_calls:
 

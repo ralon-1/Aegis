@@ -3,8 +3,9 @@ import customtkinter as ctk
 
 class AegisOverlay:
 
-    def __init__(self, on_command):
+    def __init__(self, on_command, on_voice_command=None):
         self.on_command = on_command
+        self.on_voice_command = on_voice_command
 
         self.root = ctk.CTk()
 
@@ -52,13 +53,29 @@ class AegisOverlay:
 
         self.input_box.pack(pady=10)
 
+        button_frame = ctk.CTkFrame(self.root, fg_color="transparent")
+        button_frame.pack(pady=10)
+
         send_button = ctk.CTkButton(
-            self.root,
+            button_frame,
             text="Send",
             command=self.handle_command
         )
+        send_button.pack(side="left", padx=5)
 
-        send_button.pack(pady=15)
+        voice_button = ctk.CTkButton(
+            button_frame,
+            text="🎤 Voice",
+            command=self.handle_voice_command
+        )
+        voice_button.pack(side="left", padx=5)
+
+        self.status_label = ctk.CTkLabel(
+            self.root,
+            text="",
+            text_color="gray"
+        )
+        self.status_label.pack(pady=5)
 
         self.input_box.bind(
             "<Return>",
@@ -76,6 +93,13 @@ class AegisOverlay:
 
         # Send command to Aegis core
         self.on_command(command)
+
+    def handle_voice_command(self):
+        if self.on_voice_command:
+            self.on_voice_command()
+
+    def set_status(self, text: str):
+        self.root.after(0, lambda: self.status_label.configure(text=text))
 
     def toggle(self):
 
