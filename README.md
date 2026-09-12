@@ -359,8 +359,32 @@ UI → AI integration	🟡 Current
 Guardrail refinement	🟡 Remaining
 Undo/action memory	🟡 Remaining
 Semantic file search	🔴 Not started
-Voice STT/TTS	🔴 Not started
-Startup/background persistence	🔴 Not started
+Voice STT/TTS	🟢 Done
+Startup/background persistence	🟢 Done
 Automated tests	🔴 Not started
 Final integration	🔴 Not started
 README/documentation	🔴 Not started
+
+## Startup / Background Persistence
+
+Aegis can automatically start in the background when you log into macOS and remain ready via its global hotkey, without needing an open terminal.
+
+To install the startup agent:
+```bash
+python app.py --install-startup
+```
+
+To check the current status of the startup agent:
+```bash
+python app.py --startup-status
+```
+How to view output in real-time:
+      Open your terminal and run:
+      bash
+      tail -f ~/.aegis/daemon.log
+
+
+To remove the startup agent:
+```bash
+python app.py --remove-startup
+```

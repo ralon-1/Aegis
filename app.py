@@ -10,11 +10,25 @@ from voice.text_to_speech import TextToSpeech
 
 from ui.overlay import AegisOverlay
 from ui.hotkey_listener import HotkeyListener
+import sys
+import argparse
+import tkinter.messagebox as messagebox
+from os_control.guardrails import set_confirmation_handler
+from os_control.startup_manager import install_startup, remove_startup, get_startup_status
+
+def gui_confirm_action(action: str) -> bool:
+    """Show a native GUI confirmation pop-up so terminal stdin is never blocked."""
+    return messagebox.askyesno(
+        title="⚠️ Aegis Confirmation",
+        message=f"Aegis wants to perform a protected/dangerous action:\n\n{action}\n\nDo you want to confirm?",
+        icon="warning"
+    )
 
 
 class AegisApp:
 
     def __init__(self):
+        set_confirmation_handler(gui_confirm_action)
 
         self.memory = ConversationMemory(max_turns=3)
 
@@ -182,6 +196,22 @@ class AegisApp:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Aegis AI Assistant")
+    parser.add_argument("--install-startup", action="store_true", help="Install background startup agent")
+    parser.add_argument("--remove-startup", action="store_true", help="Remove background startup agent")
+    parser.add_argument("--startup-status", action="store_true", help="Check background startup status")
+    
+    args, unknown = parser.parse_known_args()
+    
+    if args.install_startup:
+        install_startup()
+        sys.exit(0)
+    elif args.remove_startup:
+        remove_startup()
+        sys.exit(0)
+    elif args.startup_status:
+        print(get_startup_status())
+        sys.exit(0)
 
     app = AegisApp()
     app.run()
